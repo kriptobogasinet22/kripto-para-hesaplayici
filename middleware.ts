@@ -4,8 +4,11 @@ import type { NextRequest } from "next/server"
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
+
+  // Supabase istemcisini oluştur
   const supabase = createMiddlewareClient({ req, res })
 
+  // Oturumu kontrol et
   const {
     data: { session },
   } = await supabase.auth.getSession()
