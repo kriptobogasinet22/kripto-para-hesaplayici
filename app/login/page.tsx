@@ -4,17 +4,13 @@ import type React from "react"
 
 import { useState } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 
 export default function Login() {
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState("admin@example.com")
   const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClientComponentClient()
 
@@ -23,52 +19,79 @@ export default function Login() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (error) {
-      setError(error.message)
+      if (error) {
+        setError(error.message)
+        console.error("Login error:", error)
+      } else {
+        router.push("/")
+        router.refresh()
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err)
+      setError("Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.")
+    } finally {
       setLoading(false)
-    } else {
-      router.push("/")
-      router.refresh()
     }
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Kripto Para Hesaplayıcı</CardTitle>
-          <CardDescription>Admin paneline giriş yapın</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleLogin}>
-          <CardContent className="space-y-4">
-            {error && <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
-            <div className="space-y-2">
-              <Label htmlFor="email">E-posta</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Şifre</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full" disabled={loading}>
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+      <div className="w-full max-w-md p-8 space-y-8 bg-gray-800 rounded-lg shadow-md">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white">Kripto Para Hesaplayıcı</h1>
+          <p className="mt-2 text-gray-400">Admin paneline giriş yapın</p>
+        </div>
+
+        {error && <div className="p-4 bg-red-100 border border-red-400 text-red-700 rounded">{error}</div>}
+
+        <form onSubmit={handleLogin} className="mt-8 space-y-6">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+              E-posta
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 mt-1 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+              Şifre
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 mt-1 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
               {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
-            </Button>
-          </CardFooter>
+            </button>
+          </div>
         </form>
-      </Card>
+      </div>
     </div>
   )
 }
